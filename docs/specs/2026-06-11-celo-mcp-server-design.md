@@ -9,9 +9,8 @@
 ## 1. One-liner & positioning
 
 An open-source **MCP server that gives any LLM read + write access to Celo** over a single
-remote URL — balances, sends, swaps, human verification (Self), agent identity + reputation
-(ERC-8004), and x402 micropayments. Writes return **unsigned transactions**; the server never
-holds a private key.
+remote URL — balances, sends, swaps, agent identity + reputation (ERC-8004), and x402
+micropayments. Writes return **unsigned transactions**; the server never holds a private key.
 
 ### Why this is novel (honest positioning)
 
@@ -23,7 +22,7 @@ An official `celo-org/celo-mcp` already exists, but it is **Python, local-stdio,
 | Language | Python | **TypeScript** |
 | Transport | Local stdio (`uvx`/`pipx` install) | **Remote streamable-HTTP (Vercel) — zero install, add a URL** |
 | Writes | None | **Send / swap as unsigned txs** |
-| Identity | None | **Self (human) + ERC-8004 (agent + reputation)** |
+| Identity | None | **ERC-8004 (agent identity + reputation)** |
 | Payments | None | **x402 pay-per-call** |
 | Demo | None | **Live in-browser AI SDK chat** |
 
@@ -35,7 +34,7 @@ Tagline: *"The first TypeScript, remote, write-enabled Celo MCP — talk to Celo
 
 **Goals**
 - One `git push` to Vercel deploys: MCP endpoint + live demo chat + landing/docs page.
-- 9 tools, each a pure, independently testable function.
+- 8 tools, each a pure, independently testable function.
 - Trustless writes: tools emit `{ chainId, to, data, value }`; the caller's wallet/agent signs.
 - Usable from Claude Desktop, Cursor, the AI SDK, or any MCP client via the same URL.
 - Every contract address sourced from verified Celo docs — no hallucinated addresses.
@@ -67,7 +66,6 @@ celo-mcp/
 │   │   ├── resolve-address.ts
 │   │   ├── build-send-tx.ts
 │   │   ├── build-swap-tx.ts
-│   │   ├── self-verify.ts
 │   │   ├── agent-identity.ts
 │   │   ├── x402-pay.ts
 │   │   └── list-capabilities.ts
@@ -87,7 +85,7 @@ same functions in a stdio server untouched.
 
 ---
 
-## 4. Tool catalog (9 tools)
+## 4. Tool catalog (8 tools)
 
 All reads hit Celo mainnet (chainId 42220). All writes return an unsigned tx + a decoded
 human summary.
@@ -108,19 +106,15 @@ human summary.
    Uniswap v3 `QuoterV2`) + unsigned swap tx (via `SwapRouter02`). Returns expected out + min out.
 
 ### Differentiators
-6. **`self_verify_check`** — `{ address, scope? }` → checks on-chain Self.xyz human-verification
-   status for a given app scope. **Honest limitation:** Self is scoped per-app — there is no
-   global "is this address human" registry, so without a `scope` this is best-effort and may
-   return `SELF_SCOPE_REQUIRED`. Exact Self hub address to be confirmed from Self docs at build time.
-7. **`agent_identity`** — `{ address | agentId }` → **ERC-8004** lookup on Celo mainnet:
+6. **`agent_identity`** — `{ address | agentId }` → **ERC-8004** lookup on Celo mainnet:
    is this a registered AI agent (Identity registry), who owns it, its payment wallet,
    metadata, and **reputation summary** (Reputation registry). Fully addressed and deployed.
-8. **`x402_pay`** — `{ url, maxAmount? }` → runs the HTTP 402 flow: fetch the resource, parse
+7. **`x402_pay`** — `{ url, maxAmount? }` → runs the HTTP 402 flow: fetch the resource, parse
    the `402 Payment Required` challenge, and build the Celo-stablecoin payment (unsigned tx +
    the `X-PAYMENT` header recipe) so an agent can pay-per-call.
 
 ### Meta
-9. **`list_capabilities`** — `{}` → self-describing manifest: all tools, supported tokens,
+8. **`list_capabilities`** — `{}` → self-describing manifest: all tools, supported tokens,
    chain info. Great demo opener and lets any LLM discover what it can do.
 
 ---
@@ -168,7 +162,7 @@ viem read **or** unsigned-tx build → typed JSON. Writes stop at the unsigned t
 wallet/agent signs and broadcasts.
 
 **Error handling:** every tool returns a typed `{ error, code, hint }` on failure
-(`INVALID_ADDRESS`, `UNKNOWN_TOKEN`, `RPC_TIMEOUT`, `SELF_SCOPE_REQUIRED`, `AGENT_NOT_FOUND`,
+(`INVALID_ADDRESS`, `UNKNOWN_TOKEN`, `RPC_TIMEOUT`, `AGENT_NOT_FOUND`,
 `X402_NO_CHALLENGE`) so the LLM gets actionable text, not a stack trace. RPC calls get a
 timeout + one retry. All address/token inputs validated by zod **before** any network call.
 
@@ -191,7 +185,7 @@ signing tests (we never sign).
 2. Read tools (`get_balance`, `get_token_info`, `resolve_address`) + unit tests.
 3. `route.ts` with `mcp-handler` exposing read tools; verify via MCP client.
 4. Write tools (`build_send_tx`, `build_swap_tx`) + unit tests.
-5. Differentiators (`agent_identity` first — fully addressed; then `self_verify_check`; then `x402_pay`).
+5. Differentiators (`agent_identity` — ERC-8004 reads; then `x402_pay`).
 6. `list_capabilities` + landing page.
 7. `/demo` AI SDK chat wired to the MCP endpoint.
 8. README (connect URL, tool docs, self-host note) + deploy to Vercel.
@@ -200,6 +194,10 @@ signing tests (we never sign).
 ---
 
 ## 8. Open items to confirm at build time
-- Exact Self.xyz on-chain hub/verification-root address + scope mechanics (tool 6).
 - ERC-8004 ABI fragments for `getMetadata` / `getSummary` / `getAgentWallet` (have function list).
 - Uniswap v3 fee tier selection for `build_swap_tx` quotes (default 0.05%/0.3%, pick per pair).
+
+## 9. Deferred (post-MVP)
+- **Self.xyz human verification** (`self_verify_check`) — dropped from MVP because Self is
+  scoped per-app with no global registry, so a generic lookup is best-effort. Revisit if a
+  concrete scope/use-case appears.
