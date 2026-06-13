@@ -7,6 +7,9 @@ import { getTokenInfo } from '@/lib/tools/get-token-info';
 import { resolveAddress } from '@/lib/tools/resolve-address';
 import { buildSendTx } from '@/lib/tools/build-send-tx';
 import { buildSwapTx } from '@/lib/tools/build-swap-tx';
+import { agentIdentity } from '@/lib/tools/agent-identity';
+import { x402Pay } from '@/lib/tools/x402-pay';
+import { listCapabilities } from '@/lib/tools/list-capabilities';
 
 export const maxDuration = 60;
 
@@ -53,6 +56,27 @@ const handler = createMcpHandler((server) => {
       feeTier: z.number().optional(),
     },
     async (args) => toContent(await buildSwapTx(client, args)),
+  );
+
+  server.tool(
+    'agent_identity',
+    'Look up an ERC-8004 AI-agent on Celo by agentId: owner, metadata URI, payment wallet, and on-chain reputation summary.',
+    { agentId: z.string().optional(), address: z.string().optional() },
+    async (args) => toContent(await agentIdentity(client, args)),
+  );
+
+  server.tool(
+    'x402_pay',
+    'Fetch an x402-protected URL, parse its 402 Payment Required challenge, and build the UNSIGNED Celo-stablecoin payment + retry recipe.',
+    { url: z.string(), from: z.string(), maxAmount: z.string().optional() },
+    async (args) => toContent(await x402Pay(args)),
+  );
+
+  server.tool(
+    'list_capabilities',
+    'Describe this MCP server: chain, available tools, supported tokens, and the signing model.',
+    {},
+    async () => toContent(listCapabilities()),
   );
 });
 
