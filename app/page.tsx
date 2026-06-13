@@ -98,23 +98,26 @@ export default function Home() {
     };
   }, []);
 
-  function copy() {
-    try { navigator.clipboard?.writeText(MCP_URL); } catch {}
-    const el = document.querySelector<HTMLElement>('[data-copy]');
+  function flashCopy(text: string, selector: string) {
+    try { navigator.clipboard?.writeText(text); } catch {}
+    const el = document.querySelector<HTMLElement>(selector);
     if (!el) return;
     const old = el.textContent;
     el.textContent = 'copied ✓';
     setTimeout(() => { el.textContent = old; }, 1400);
   }
+  const copy = () => flashCopy(MCP_URL, '[data-copy]');
+  const copyJson = () => flashCopy(`{\n  "mcpServers": {\n    "celo": { "url": "${MCP_URL}" }\n  }\n}`, '[data-copyjson]');
 
   return (
     <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
       {/* NAV */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 60, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(5,5,5,.66)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 28px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
-          <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-            <span className="f-display" style={{ width: 26, height: 26, borderRadius: 8, background: '#fcff52', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#050505', fontWeight: 700, fontSize: 15, boxShadow: '0 0 22px rgba(252,255,82,.5)' }}>C</span>
-            <span className="f-display" style={{ fontWeight: 700, fontSize: 20, letterSpacing: '-.02em' }}>CELO<span style={{ color: '#9b9b93', fontWeight: 500 }}>mcp</span></span>
+          <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/celo-mark.svg" alt="Celo" style={{ height: 17, filter: 'invert(1)' }} />
+            <span className="f-display" style={{ fontWeight: 600, fontSize: 19, color: '#9b9b93', letterSpacing: '-.02em' }}>mcp</span>
           </a>
           <div className="navlinks" style={{ display: 'flex', alignItems: 'center', gap: 30, fontSize: '14.5px', fontWeight: 500 }}>
             <a className="lnk" href="#tools">Tools</a>
@@ -151,6 +154,14 @@ export default function Home() {
             <div className="copybox" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, border: '1px solid rgba(255,255,255,.12)', borderRadius: 13, padding: '14px 18px', background: 'rgba(255,255,255,.03)', fontFamily: 'var(--font-mono)', fontSize: 14, marginTop: 24, maxWidth: 440 }}>
               <span style={{ color: '#fbf7ee' }}>https://celo-mcp.vercel.app<span style={{ color: '#fcff52' }}>/mcp</span></span>
               <span data-copy className="copy-link" onClick={copy} style={{ color: '#9b9b93', fontSize: 12, cursor: 'pointer' }}>copy ⧉</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 22 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.14em', color: '#7a7a72' }}>works with</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/claude.svg" alt="Claude" title="Claude" style={{ height: 18, filter: 'invert(1)', opacity: 0.85 }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/cursor.svg" alt="Cursor" title="Cursor" style={{ height: 16, filter: 'invert(1)', opacity: 0.85 }} />
+              <span style={{ fontSize: 13, color: '#7a7a72' }}>+ any MCP client</span>
             </div>
           </div>
 
@@ -231,11 +242,31 @@ export default function Home() {
         <div style={{ maxWidth: 780, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <span style={eyebrow('#5b5b30')}>Connect</span>
           <h2 className="f-display" style={h2style}>Add it in 10 seconds.</h2>
-          <p style={{ fontSize: 17, color: '#3b3b25', marginBottom: 32 }}>Drop the Streamable-HTTP URL into any MCP client. No install, no key.</p>
-          <div className="connect-card" style={{ border: '1px solid rgba(0,0,0,.18)', borderRadius: 18, padding: 24, background: 'rgba(0,0,0,.04)' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.1em', color: '#5b5b40', marginBottom: 12 }}>claude desktop · cursor · mcp.json</div>
-            <pre style={{ fontFamily: 'var(--font-mono)', fontSize: '13.5px', lineHeight: 1.75, overflowX: 'auto', color: '#0b0b08', margin: 0 }}>
-<span style={{ color: '#5b5b40' }}>{'{'}</span>{'\n  '}<span style={{ color: '#0b0b08' }}>&quot;mcpServers&quot;</span>: <span style={{ color: '#5b5b40' }}>{'{'}</span>{'\n    '}<span style={{ color: '#0b0b08' }}>&quot;celo&quot;</span>: <span style={{ color: '#5b5b40' }}>{'{'}</span> <span style={{ color: '#0b0b08' }}>&quot;url&quot;</span>: <span style={{ color: '#1a7a3a' }}>&quot;{MCP_URL}&quot;</span> <span style={{ color: '#5b5b40' }}>{'}'}</span>{'\n  '}<span style={{ color: '#5b5b40' }}>{'}'}</span>{'\n'}<span style={{ color: '#5b5b40' }}>{'}'}</span>
+          <p style={{ fontSize: 17, color: '#3b3b25', marginBottom: 28 }}>Drop the Streamable-HTTP URL into any MCP client. No install, no key.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 26, flexWrap: 'wrap', marginBottom: 34 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '.14em', color: '#5b5b30' }}>works with</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 15, color: '#050505' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/claude.svg" alt="" style={{ height: 20 }} />Claude
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 15, color: '#050505' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/cursor.svg" alt="" style={{ height: 17 }} />Cursor
+            </span>
+            <span style={{ fontWeight: 600, fontSize: 15, color: '#050505' }}>Claude Desktop</span>
+            <span style={{ fontWeight: 500, fontSize: 15, color: '#3b3b25', opacity: 0.75 }}>&amp; any MCP client</span>
+          </div>
+          <div className="connect-card" style={{ borderRadius: 14, background: '#0c0c0c', border: '1px solid rgba(0,0,0,.3)', overflow: 'hidden', boxShadow: '0 24px 55px -28px rgba(0,0,0,.6)' }}>
+            <div style={{ height: 2, background: 'linear-gradient(90deg,transparent,#fcff52,#56ff9a,transparent)', backgroundSize: '200% auto', animation: 'shimmer 4s linear infinite' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 15px', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#ff5f57' }} />
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#febc2e' }} />
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#28c840' }} />
+              <span className="f-mono" style={{ marginLeft: 8, fontSize: '12.5px', color: '#9b9b93' }}>mcp.json</span>
+              <span data-copyjson onClick={copyJson} className="copy-link f-mono" style={{ marginLeft: 'auto', fontSize: 12, color: '#9b9b93', cursor: 'pointer' }}>copy ⧉</span>
+            </div>
+            <pre style={{ fontFamily: 'var(--font-mono)', fontSize: '13.5px', lineHeight: 1.85, overflowX: 'auto', color: '#e9e9e3', margin: 0, padding: '18px 20px' }}>
+<span style={{ color: '#6b6b63' }}>{'{'}</span>{'\n  '}<span style={{ color: '#7fd1ff' }}>&quot;mcpServers&quot;</span><span style={{ color: '#cfcfc8' }}>:</span> <span style={{ color: '#6b6b63' }}>{'{'}</span>{'\n    '}<span style={{ color: '#7fd1ff' }}>&quot;celo&quot;</span><span style={{ color: '#cfcfc8' }}>:</span> <span style={{ color: '#6b6b63' }}>{'{'}</span> <span style={{ color: '#c79bff' }}>&quot;url&quot;</span><span style={{ color: '#cfcfc8' }}>:</span> <span style={{ color: '#56ff9a' }}>&quot;{MCP_URL}&quot;</span> <span style={{ color: '#6b6b63' }}>{'}'}</span>{'\n  '}<span style={{ color: '#6b6b63' }}>{'}'}</span>{'\n'}<span style={{ color: '#6b6b63' }}>{'}'}</span>
             </pre>
           </div>
           <div style={{ display: 'flex', gap: 13, marginTop: 28, flexWrap: 'wrap' }}>
@@ -248,9 +279,10 @@ export default function Home() {
       {/* FOOTER */}
       <footer style={{ background: '#050505', color: '#9b9b93', padding: '52px 28px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 18, alignItems: 'center' }}>
-          <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-            <span className="f-display" style={{ width: 24, height: 24, borderRadius: 7, background: '#fcff52', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#050505', fontWeight: 700, fontSize: 14 }}>C</span>
-            <span className="f-display" style={{ fontWeight: 700, fontSize: 18, color: '#fbf7ee' }}>CELO<span style={{ color: '#9b9b93', fontWeight: 500 }}>mcp</span></span>
+          <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/celo-mark.svg" alt="Celo" style={{ height: 15, filter: 'invert(1)' }} />
+            <span className="f-display" style={{ fontWeight: 600, fontSize: 17, color: '#9b9b93' }}>mcp</span>
           </a>
           <div style={{ display: 'flex', gap: 26, fontSize: 14 }}>
             <a className="lnk" href="#tools">Tools</a>

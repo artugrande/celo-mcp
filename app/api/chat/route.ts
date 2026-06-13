@@ -69,18 +69,67 @@ const tools = {
   }),
 };
 
+// ---- abuse protection (no external services) ----
+const MAX_MESSAGES = 16;
+const MAX_CHARS = 8_000; // total serialized user payload
+const RL_WINDOW_MS = 30_000;
+const RL_MAX = 8; // requests per IP per window (best-effort, per warm instance)
+const hits = new Map<string, number[]>();
+
+function clientIp(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for') || '';
+  return fwd.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
+}
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const arr = (hits.get(ip) || []).filter((t) => now - t < RL_WINDOW_MS);
+  arr.push(now);
+  hits.set(ip, arr);
+  if (hits.size > 5_000) hits.clear(); // crude memory cap
+  return arr.length > RL_MAX;
+}
+
+function json(status: number, body: unknown) {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+}
+
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  // 1) same-origin only — blocks other sites from spending the budget
+  const origin = req.headers.get('origin');
+  if (origin) {
+    try {
+      if (new URL(origin).host !== new URL(req.url).host) return json(403, { error: 'cross-origin requests are not allowed' });
+    } catch {
+      return json(403, { error: 'bad origin' });
+    }
+  }
+
+  // 2) per-IP rate limit
+  if (rateLimited(clientIp(req))) return json(429, { error: 'rate limit — slow down a moment' });
+
+  // 3) payload caps
+  let messages: UIMessage[];
+  try {
+    const body = await req.json();
+    messages = body?.messages;
+  } catch {
+    return json(400, { error: 'invalid json' });
+  }
+  if (!Array.isArray(messages) || messages.length === 0) return json(400, { error: 'no messages' });
+  if (messages.length > MAX_MESSAGES) return json(400, { error: 'too many messages' });
+  if (JSON.stringify(messages).length > MAX_CHARS) return json(413, { error: 'message too long' });
 
   const result = streamText({
     model: MODEL,
     system:
       'You are a Celo blockchain assistant. Use the provided tools to read balances and build transactions. ' +
       'Writes return UNSIGNED transactions — always tell the user they must sign and broadcast themselves. ' +
-      'Never claim to have sent anything or moved funds.',
+      'Never claim to have sent anything or moved funds. Keep answers concise.',
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(5),
+    maxOutputTokens: 700, // hard cap on tokens (and cost) per response
   });
 
   return result.toUIMessageStreamResponse();
