@@ -19,7 +19,8 @@ Add the Streamable-HTTP MCP endpoint to Claude Desktop, Cursor, or any MCP clien
 }
 ```
 
-Then open **`/demo`** on the deployment for a live in-browser chat (Vercel AI SDK + AI Gateway).
+The landing page itself has a **live in-browser chat** (Vercel AI SDK + AI Gateway) wired to the
+same tools — try it at the deployment root.
 
 ## Tools
 
