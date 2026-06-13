@@ -1,66 +1,34 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-
 export default function Home() {
+  const tools = [
+    ['get_balance', 'CELO + stablecoin balances'],
+    ['get_token_info', 'Verified token address/decimals'],
+    ['resolve_address', 'Validate & checksum addresses'],
+    ['build_send_tx', 'Unsigned transfer tx'],
+    ['build_swap_tx', 'Uniswap v3 quote + unsigned swap'],
+    ['agent_identity', 'ERC-8004 agent + reputation'],
+    ['x402_pay', '402 challenge → unsigned payment'],
+    ['list_capabilities', 'Self-describing manifest'],
+  ];
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main style={{ maxWidth: 720, margin: '0 auto', padding: '3rem 1.5rem', fontFamily: 'system-ui' }}>
+      <h1>Celo MCP</h1>
+      <p>Read + write access to Celo for any LLM. Remote, zero-install. Writes return unsigned transactions — no key custody.</p>
+      <h2>Connect</h2>
+      <p>Add this Streamable-HTTP MCP URL to Claude Desktop, Cursor, or the AI SDK:</p>
+      <pre style={{ background: '#f4f4f5', padding: '1rem', borderRadius: 8, overflowX: 'auto' }}>
+{`{
+  "mcpServers": {
+    "celo": { "url": "https://<your-deployment>.vercel.app/mcp" }
+  }
+}`}
+      </pre>
+      <p><a href="/demo">→ Try the live demo chat</a></p>
+      <h2>Tools</h2>
+      <ul>
+        {tools.map(([name, desc]) => (
+          <li key={name}><code>{name}</code> — {desc}</li>
+        ))}
+      </ul>
+    </main>
   );
 }
