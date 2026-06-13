@@ -35,6 +35,11 @@ describe('buildSwapTx', () => {
     expect(r).toMatchObject({ error: true, code: 'UNKNOWN_TOKEN' });
   });
 
+  it('rejects out-of-range slippage', async () => {
+    const r = await buildSwapTx(mockClient(1n), { from: FROM, tokenIn: 'USDC', tokenOut: 'USDm', amountIn: '1', slippage: 150 });
+    expect(r).toMatchObject({ error: true, code: 'INVALID_SLIPPAGE' });
+  });
+
   it('maps quoter failure to NO_ROUTE', async () => {
     const client = { readContract: vi.fn().mockRejectedValue(new Error('no pool')) } as any;
     const r = await buildSwapTx(client, { from: FROM, tokenIn: 'USDC', tokenOut: 'USDm', amountIn: '1' });

@@ -1,18 +1,20 @@
 import { encodeFunctionData, erc20Abi, formatUnits } from 'viem';
 import { TOKENS } from '@/lib/tokens';
-import { CELO_CHAIN_ID } from '@/lib/contracts';
+import { CELO_CHAIN_ID, X402_TOKENS } from '@/lib/contracts';
 import { err, type ToolError, type UnsignedTx } from '@/lib/types';
 
 type FetchFn = typeof fetch;
+
+// Only stablecoins are valid x402 settlement currencies.
+function tokenForSettlement(addr: string) {
+  const t = TOKENS.find((x) => x.address.toLowerCase() === addr.toLowerCase());
+  return t && (X402_TOKENS as readonly string[]).includes(t.symbol) ? t : undefined;
+}
 
 export interface X402Result {
   challenge: { token: string; amount: string; raw: string; payTo: `0x${string}` };
   unsignedTx: UnsignedTx;
   retry: { header: string; note: string };
-}
-
-function tokenByAddress(addr: string) {
-  return TOKENS.find((t) => t.address.toLowerCase() === addr.toLowerCase());
 }
 
 export async function x402Pay(
@@ -44,8 +46,8 @@ export async function x402Pay(
     return err('X402_BAD_CHALLENGE', 'Challenge is missing currency, price, or payTo.');
   }
 
-  const token = tokenByAddress(currency);
-  if (!token) return err('X402_UNSUPPORTED_TOKEN', `Payment currency ${currency} is not a known Celo stablecoin.`);
+  const token = tokenForSettlement(currency);
+  if (!token) return err('X402_UNSUPPORTED_TOKEN', `Payment currency ${currency} is not a supported Celo stablecoin (USDC, USDT, USDm).`);
 
   const amount = BigInt(priceRaw);
   const formatted = formatUnits(amount, token.decimals);

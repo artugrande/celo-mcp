@@ -30,6 +30,14 @@ describe('x402Pay', () => {
     expect(r).toMatchObject({ error: true, code: 'X402_NO_CHALLENGE' });
   });
 
+  it('rejects a non-settlement token (e.g. CELO)', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(
+      challengeResponse({ price: '1000000000000000000', currency: '0x471EcE3750Da237f93B8E339c536989b8978a438', chainId: 42220, payTo: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C' }),
+    );
+    const r = await x402Pay({ url: 'https://x', from: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C' }, fetchFn);
+    expect(r).toMatchObject({ error: true, code: 'X402_UNSUPPORTED_TOKEN' });
+  });
+
   it('enforces maxAmount', async () => {
     const fetchFn = vi.fn().mockResolvedValue(
       challengeResponse({ price: '5000000', currency: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C', chainId: 42220, payTo: '0x471EcE3750Da237f93B8E339c536989b8978a438' }),

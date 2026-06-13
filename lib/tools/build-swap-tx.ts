@@ -35,6 +35,11 @@ export async function buildSwapTx(
     return err('INVALID_AMOUNT', `"${args.amountIn}" is not a valid decimal amount.`);
   }
 
+  const slippage = args.slippage ?? 0.5;
+  if (slippage < 0 || slippage > 50) {
+    return err('INVALID_SLIPPAGE', 'slippage must be a percent between 0 and 50.');
+  }
+
   const fee = args.feeTier ?? DEFAULT_FEE;
   let amountOut: bigint;
   try {
@@ -49,7 +54,6 @@ export async function buildSwapTx(
     return err('NO_ROUTE', `No Uniswap v3 route for ${tin.symbol}->${tout.symbol} at fee ${fee}: ${(e as Error).message}`);
   }
 
-  const slippage = args.slippage ?? 0.5;
   const minOut = (amountOut * BigInt(Math.round((100 - slippage) * 100))) / 10_000n;
 
   const approvalData = encodeFunctionData({
